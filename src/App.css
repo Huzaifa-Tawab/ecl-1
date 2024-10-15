@@ -40,3 +40,80 @@
 .read-the-docs {
   color: #888;
 }
+/* Container styling */
+.container {
+  max-width: 100%;
+  margin: 40px auto;
+  padding: 20px;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow-x: auto; /* Enable horizontal scrolling */
+}
+
+/* Heading styling */
+h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* File input styling */
+input[type="file"] {
+  padding: 12px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #fff;
+  width: calc(100% - 30px);
+  max-width: 600px;
+  margin-bottom: 30px;
+}
+
+/* Uploaded data section styling */
+.migration-data {
+  text-align: left;
+  margin-top: 40px;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  min-width: 1200px; /* Minimum width to prevent shrinking */
+}
+
+table, th, td {
+  border: 1px solid #ccc;
+}
+
+th, td {
+  padding: 12px;
+  text-align: center; /* Center-align the text */
+  min-width: 100px; /* Set a minimum width for cells */
+  white-space: nowrap; /* Prevent text from wrapping */
+}
+
+th {
+  background-color: #f1f1f1;
+  font-weight: bold;
+}
+
+/* Button styling */
+button {
+  margin-top: 20px;
+  padding: 12px 24px;
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #45a049;
+}

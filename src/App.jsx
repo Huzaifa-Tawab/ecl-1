@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
+import './App.css'
 
 function App() {
   const [excelData, setExcelData] = useState(null);
@@ -147,17 +148,62 @@ function splitBySegments(data) {
   };
 
   return (
-    <div>
-      <h1>Excel Migration Calculator</h1>
-      <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
-      {calculatedMigrationData && (
-        <div>
-          <h3>Migration Data Calculated:</h3>
-          <pre>{JSON.stringify(calculatedMigrationData, null, 2)}</pre>
-          <button onClick={downloadExcel}>Download Excel</button>
-        </div>
-      )}
-    </div>
+    <div className="container">
+    <h1>Excel Migration Calculator</h1>
+    <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+    {calculatedMigrationData && (
+      <div className="migration-data">
+        <h3>Migration Data Calculated:</h3>
+        <table>
+          <thead>
+            <tr>
+             <th>Segment</th>
+             <th>Not Due</th>
+             <th>1-29</th>
+             <th>30-59</th>
+             <th>60-89</th>
+             <th>90-119</th>
+             <th>120-149</th>
+             <th>150-179</th>
+             <th>180-209</th>
+             <th>210-239</th>
+             <th>240-269</th>
+             <th>270-299</th>
+             <th>300-329</th>
+             <th>330-359</th>
+             <th>360-389</th>
+             <th>390-419</th>
+             <th>420-449</th>
+             <th>450-479</th>
+             <th>480-509</th>
+             <th>510-539</th>
+             <th>540-569</th>
+             <th>570-599</th>
+             <th>600-629</th>
+             <th>630-659</th>
+             <th>660-689</th>
+             <th>690-719</th>
+             <th>720-749</th>
+             <th>750-779</th>
+             <th>Total</th>
+             
+            </tr>
+          </thead>
+          <tbody>
+            {calculatedMigrationData.map((row, index) => (
+              <tr key={index}>
+                {Object.values(row).map((value, i) => (
+                  <td key={i}>{value}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button onClick={downloadExcel}>Download Excel</button>
+      </div>
+    )}
+  </div>
+  
   );
 }
 
