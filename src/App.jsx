@@ -1,213 +1,3 @@
-// import React, { useState } from "react";
-// import * as XLSX from "xlsx";
-// import './App.css'
-
-// function App() {
-//   const [excelData, setExcelData] = useState(null);
-//   const [calculatedMigrationData, setCalculatedMigrationData] = useState(null);
-
-//   // Function to handle file upload
-//   const handleFileUpload = (e) => {
-//     const file = e.target.files[0];
-
-//     if (file) {
-//       const reader = new FileReader();
-//       reader.onload = (event) => {
-//         const binaryStr = event.target.result;
-//         const workbook = XLSX.read(binaryStr, { type: "binary" });
-
-//         // Get the first sheet
-//         const sheetName = workbook.SheetNames[0];
-//         const sheet = workbook.Sheets[sheetName];
-
-//         // Define the options to skip the first row (header starts from A2)
-//         const options = {
-//           header: 1, // Take raw row data as an array, preserving headers
-//           range: 1, // Start from row 2 (0-indexed, so row 2 is 1)
-//         };
-
-//         // Convert the sheet to JSON with options
-//         const rawData = XLSX.utils.sheet_to_json(sheet, options);
-
-//         // Extract headers dynamically (from the second row)
-//         const headers = rawData[0];
-
-//         const nonHeaders = ["Date", "Segment", "Total"];
-//         const newHeader = headers.filter((item) => !nonHeaders.includes(item));
-
-//         // Extract the rest of the data starting from the second row
-
-//         const data = rawData
-//           .slice(1) // Extract rows starting from the second row
-//           .filter((row) => row.length > 0); // Remove empty arrays
-
-//         setExcelData({ headers, data });
-
-//         // Filter out the non-header items (i.e., exclude "Date", "Segment", "Total")
-
-//         // console.log(newHeader);
-//         calculateMigration(data, headers);
-//       };
-
-//       reader.readAsBinaryString(file);
-//     }
-//   };
-
-//   const calculateMigration = (data, headers) => {
-//     // console.log(data);
-
-//     const resultData = data
-//       .filter((_, rowIndex) => rowIndex !== 0) // Skip the first row entirely
-//       .map((row, rowIndex) => {
-//         // console.log("Row ", rowIndex);
-
-//         return row
-//           .filter((_, colIndex) => colIndex > 1) // Skip the 'Date' and 'Segment' columns
-//           .map((cellValue, colIndex) => {
-//             const adjustedColIndex = colIndex + 3; // Adjust the column index since 'Date' and 'Segment' are removed
-//             const previousRowValue = data[rowIndex][adjustedColIndex - 2];
-//             const currentValue = parseFloat(cellValue) || 0;
-//             const previousValue = parseFloat(previousRowValue) || 0;
-//             // console.log(previousRowValue, currentValue, adjustedColIndex);
-
-//             // Avoid division by zero
-//             if (previousValue === 0) {
-//               return previousRowValue;
-//             }
-
-//             const migrationValue = currentValue / previousValue;
-
-//             // console.log(`${rowIndex + 1} || ${adjustedColIndex} `);
-//             // console.log(
-//             //   `${currentValue} / ${previousValue} = ${migrationValue}`
-//             // );
-//             // console.log(`__________________________________________________`);
-
-//             // Return 1 if migration value is greater than 1, else return the value
-
-//             return migrationValue > 1 ? 1 : migrationValue.toFixed(5);
-//           });
-//       });
-
-//     setCalculatedMigrationData(resultData);
-//     calculateAveragePerSegment(resultData);
-//   };
-//   function calculateAveragePerSegment(data) {
-//     const newData = splitBySegments(data); 
-//     console.log(newData);
-    
-//     const averages = {}; // To store the average values for each segment
-
-//     // Iterate over each segment in newData
-//     for (const segment in newData) {
-//         const segmentData = newData[segment];
-//         const columnCount = segmentData[0].length; // Get the number of columns
-//         const sums = Array(columnCount).fill(0); // Initialize sums for each column
-//         const rowCount = segmentData.length; // Get the number of rows in the segment
-        
-//         // Sum values for each column
-//         segmentData.forEach(row => {
-//             row.forEach((value, index) => {
-//                 sums[index] += parseFloat(value); // Sum the values column-wise
-//             });
-//         });
-
-//         // Calculate averages for each column
-//         const averagesForSegment = sums.map(sum => ((sum / rowCount) *100).toFixed(2)); // Calculate average and fix to 2 decimal places
-//         averages[segment] = averagesForSegment ; // Store averages in the averages object
-//     }
-
-//     console.log(averages); // Output the averages for each segment
-// }
-// function splitBySegments(data) {
-//   const segmentGroups = {};
-
-//   data.forEach(row => {
-//     const segmentName = row[0];  // First element is the segment name
-//     const values = row.slice(1);  // Rest are the values
-
-//     if (!segmentGroups[segmentName]) {
-//       segmentGroups[segmentName] = [];
-//     }
-
-//     // Add the row to the appropriate segment group
-//     segmentGroups[segmentName].push(values);
-//   });
-
-//   return segmentGroups;
-// }
-//   // Function to download the calculated data as an Excel file
-//   const downloadExcel = () => {
-//     const worksheet = XLSX.utils.aoa_to_sheet([
-//       excelData.headers, // Add headers
-//       ...calculatedMigrationData, // Add calculated rows
-//     ]);
-//     const workbook = XLSX.utils.book_new();
-//     XLSX.utils.book_append_sheet(workbook, worksheet, "MigrationData");
-//     XLSX.writeFile(workbook, "MigrationData.xlsx");
-//   };
-
-//   return (
-//     <div className="container">
-//     <h1>Excel Migration Calculator</h1>
-//     <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
-//     {calculatedMigrationData && (
-//       <div className="migration-data">
-//         <h3>Migration Data Calculated:</h3>
-//         <table>
-//           <thead>
-//             <tr>
-//              <th>Segment</th>
-//              <th>Not Due</th>
-//              <th>1-29</th>
-//              <th>30-59</th>
-//              <th>60-89</th>
-//              <th>90-119</th>
-//              <th>120-149</th>
-//              <th>150-179</th>
-//              <th>180-209</th>
-//              <th>210-239</th>
-//              <th>240-269</th>
-//              <th>270-299</th>
-//              <th>300-329</th>
-//              <th>330-359</th>
-//              <th>360-389</th>
-//              <th>390-419</th>
-//              <th>420-449</th>
-//              <th>450-479</th>
-//              <th>480-509</th>
-//              <th>510-539</th>
-//              <th>540-569</th>
-//              <th>570-599</th>
-//              <th>600-629</th>
-//              <th>630-659</th>
-//              <th>660-689</th>
-//              <th>690-719</th>
-//              <th>720-749</th>
-//              <th>750-779</th>
-//              <th>Total</th>
-             
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {calculatedMigrationData.map((row, index) => (
-//               <tr key={index}>
-//                 {Object.values(row).map((value, i) => (
-//                   <td key={i}>{value}</td>
-//                 ))}
-//               </tr>
-//             ))}
-//           </tbody>
-//         </table>
-//         <button onClick={downloadExcel}>Download Excel</button>
-//       </div>
-//     )}
-//   </div>
-  
-//   );
-// }
-
-// export default App;
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import './App.css';
@@ -215,6 +5,18 @@ import './App.css';
 function App() {
   const [excelData, setExcelData] = useState(null);
   const [calculatedMigrationData, setCalculatedMigrationData] = useState(null);
+  const [calculatedAverageData, setCalculatedAverageData] = useState(null);
+  const [filteredData, setFilteredData] = useState(null);
+  const [segment1, setSegment1] = useState("");
+  const [segment2, setSegment2] = useState("");
+  const [lossRateSegment1, setLossRateSegment1] = useState("");
+  const [lossRateSegment2, setLossRateSegment2] = useState("");
+  const [calculatedLossRates, setCalculatedLossRates] = useState(null);
+  const bucketOptions = [
+    "Not Due", "1-29", "30-59", "60-89", "90-119", "120-149", "150-179", "180-209", "210-239", "240-269",
+    "270-299", "300-329", "330-359", "360-389", "390-419", "420-449", "450-479", "480-509", "510-539",
+    "540-569", "570-599", "600-629", "630-659", "660-689", "690-719", "720-749", "750-779", "Total"
+  ];
 
   // Function to handle file upload
   const handleFileUpload = (e) => {
@@ -230,29 +32,24 @@ function App() {
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
 
-        // Define the options to skip the first row (header starts from A2)
         const options = {
-          header: 1, // Take raw row data as an array, preserving headers
-          range: 1, // Start from row 2 (0-indexed, so row 2 is 1)
+          header: 1,
+          range: 1,
         };
 
-        // Convert the sheet to JSON with options
         const rawData = XLSX.utils.sheet_to_json(sheet, options);
 
-        // Extract headers dynamically (from the second row)
         const headers = rawData[0];
 
         const nonHeaders = ["Date", "Segment", "Total"];
         const newHeader = headers.filter((item) => !nonHeaders.includes(item));
 
-        // Extract the rest of the data starting from the second row
         const data = rawData
-          .slice(1) // Extract rows starting from the second row
-          .filter((row) => row.length > 0); // Remove empty arrays
+          .slice(1)
+          .filter((row) => row.length > 0);
 
         setExcelData({ headers, data });
 
-        // Calculate migration data
         calculateMigration(data, headers);
       };
 
@@ -262,24 +59,22 @@ function App() {
 
   const calculateMigration = (data, headers) => {
     const resultData = data
-      .filter((_, rowIndex) => rowIndex !== 0) // Skip the first row entirely
+      .filter((_, rowIndex) => rowIndex !== 0)
       .map((row, rowIndex) => {
         return row
-          .filter((_, colIndex) => colIndex > 1) // Skip the 'Date' and 'Segment' columns
+          .filter((_, colIndex) => colIndex > 1)
           .map((cellValue, colIndex) => {
-            const adjustedColIndex = colIndex + 3; // Adjust the column index since 'Date' and 'Segment' are removed
+            const adjustedColIndex = colIndex + 3;
             const previousRowValue = data[rowIndex][adjustedColIndex - 2];
             const currentValue = parseFloat(cellValue) || 0;
             const previousValue = parseFloat(previousRowValue) || 0;
 
-            // Avoid division by zero
             if (previousValue === 0) {
               return previousRowValue;
             }
 
             const migrationValue = currentValue / previousValue;
 
-            // Return 1 if migration value is greater than 1, else return the value
             return migrationValue > 1 ? 1 : migrationValue.toFixed(5);
           });
       });
@@ -290,64 +85,100 @@ function App() {
 
   function calculateAveragePerSegment(data) {
     const newData = splitBySegments(data);
-    const averages = {}; // To store the average values for each segment
+    const averages = {};
 
-    // Iterate over each segment in newData
     for (const segment in newData) {
       const segmentData = newData[segment];
-      const columnCount = segmentData[0].length; // Get the number of columns
-      const sums = Array(columnCount).fill(0); // Initialize sums for each column
-      const rowCount = segmentData.length; // Get the number of rows in the segment
+      const columnCount = segmentData[0].length;
+      const sums = Array(columnCount).fill(0);
+      const rowCount = segmentData.length;
 
-      // Sum values for each column
       segmentData.forEach(row => {
         row.forEach((value, index) => {
-          sums[index] += parseFloat(value); // Sum the values column-wise
+          sums[index] += parseFloat(value);
         });
       });
 
-      // Calculate averages for each column
-      const averagesForSegment = sums.map(sum => ((sum / rowCount) * 100).toFixed(2)); // Calculate average and fix to 2 decimal places
-      averages[segment] = averagesForSegment; // Store averages in the averages object
+      const averagesForSegment = sums.map(sum => ((sum / rowCount) * 100).toFixed(2));
+      averages[segment] = averagesForSegment;
     }
 
-    // Set the averages to be displayed in the migration data table
-    setCalculatedMigrationData(prevData => {
-      const updatedData = [...prevData];
-
-      // Add the averages row for each segment at the end
-      for (const segment in averages) {
-        const averageRow = ["Average", ...averages[segment]];
-        updatedData.push(averageRow);
-      }
-
-      return updatedData;
-    });
+    setCalculatedAverageData(averages);
   }
 
   function splitBySegments(data) {
     const segmentGroups = {};
 
     data.forEach(row => {
-      const segmentName = row[0]; // First element is the segment name
-      const values = row.slice(1); // Rest are the values
+      const segmentName = row[0];
+      const values = row.slice(1);
 
       if (!segmentGroups[segmentName]) {
         segmentGroups[segmentName] = [];
       }
 
-      // Add the row to the appropriate segment group
       segmentGroups[segmentName].push(values);
     });
 
     return segmentGroups;
   }
 
-  // Function to download the calculated data as an Excel file
+  const handleSegment1Change = (e) => {
+    setSegment1(e.target.value);
+    setSegment2("");
+  };
+
+  const handleSegment2Change = (e) => {
+    setSegment2(e.target.value);
+  };
+
+  // Submit button handler to filter data based on selected segments
+  const handleSubmit = () => {
+    if (segment1 && segment2 && calculatedAverageData) {
+      const segment1Index = bucketOptions.indexOf(segment1);
+      const segment2Index = bucketOptions.indexOf(segment2);
+
+      // Filter and store data for the selected bucket ranges
+      const filtered = Object.entries(calculatedAverageData).map(([key, row]) => {
+        let segment1Values = [];
+        let segment2Values = [];
+
+        // Get the values up to the selected segment index for both Segment 1 and Segment 2
+        if (key === "Segment 1") {
+          segment1Values = row.slice(0, segment1Index + 1);
+          segment2Values = new Array(segment1Values.length).fill(""); // Empty for Segment 2 in this row
+        } else if (key === "Segment 2") {
+          segment2Values = row.slice(0, segment2Index + 1);
+          segment1Values = new Array(segment2Values.length).fill(""); // Empty for Segment 1 in this row
+        }
+
+        return [key, segment1Values, segment2Values];
+      });
+
+      setFilteredData(filtered);
+    }
+  };
+  const handleCalculateLossRate = () => {
+    if (lossRateSegment1 && lossRateSegment2 && filteredData) {
+      const calculateRate = (values, percentage) => {
+        return values.map(value => {
+          const val = parseFloat(value) || 0;
+          return (val * (percentage / 100)).toFixed(2);
+        });
+      };
+
+      const segment1LossRates = calculateRate(filteredData[0][1], lossRateSegment1);
+      const segment2LossRates = calculateRate(filteredData[0][2], lossRateSegment2);
+
+      setCalculatedLossRates([segment1LossRates, segment2LossRates]);
+    }
+  };
+
+
   const downloadExcel = () => {
     const worksheet = XLSX.utils.aoa_to_sheet([
-      excelData.headers, // Add headers
-      ...calculatedMigrationData, // Add calculated rows
+      excelData.headers,
+      ...calculatedMigrationData,
     ]);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "MigrationData");
@@ -358,54 +189,163 @@ function App() {
     <div className="container">
       <h1>Excel Migration Calculator</h1>
       <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+
       {calculatedMigrationData && (
-        <div className="migration-data">
-          <h3>Migration Data Calculated:</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Segment</th>
-                <th>Not Due</th>
-                <th>1-29</th>
-                <th>30-59</th>
-                <th>60-89</th>
-                <th>90-119</th>
-                <th>120-149</th>
-                <th>150-179</th>
-                <th>180-209</th>
-                <th>210-239</th>
-                <th>240-269</th>
-                <th>270-299</th>
-                <th>300-329</th>
-                <th>330-359</th>
-                <th>360-389</th>
-                <th>390-419</th>
-                <th>420-449</th>
-                <th>450-479</th>
-                <th>480-509</th>
-                <th>510-539</th>
-                <th>540-569</th>
-                <th>570-599</th>
-                <th>600-629</th>
-                <th>630-659</th>
-                <th>660-689</th>
-                <th>690-719</th>
-                <th>720-749</th>
-                <th>750-779</th>
-              </tr>
-            </thead>
-            <tbody>
-              {calculatedMigrationData.map((row, index) => (
-                <tr key={index}>
-                  {Object.values(row).map((value, i) => (
-                    <td key={i}>{value}</td>
+        <>
+          <div className="migration-data">
+            <h3>Calculated Migration Data</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Segment</th>
+                  {bucketOptions.map((bucket, index) => (
+                    <th key={index}>{bucket}</th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {calculatedMigrationData.map((row, index) => (
+                  <tr key={index}>
+                    {row.map((value, i) => (
+                      <td key={i}>{value}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="average-data">
+            <h3>Calculated Average Migration</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Segment</th>
+                  {bucketOptions.map((bucket, index) => (
+                    <th key={index}>{bucket}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(calculatedAverageData).map(([key, row], index) => (
+                  <tr key={index}>
+                    <td>{key}</td>
+                    {row.map((value, i) => (
+                      <td key={i}>{value}%</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="comparison-section">
+            <h3>Compare Average Migration</h3>
+            <div>
+              <label>Select Segment 1: </label>
+              <select value={segment1} onChange={handleSegment1Change}>
+                <option value="">Select Segment 1</option>
+                {bucketOptions.map((option, index) => (
+                  <option key={index} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {segment1 && (
+              <div>
+                <label>Select Segment 2: </label>
+                <select value={segment2} onChange={handleSegment2Change}>
+                  <option value="">Select Segment 2</option>
+                  {bucketOptions.map((option, index) => (
+                    <option key={index} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <button onClick={handleSubmit}>Submit</button>
+          </div>
+
+          {filteredData && (
+            <div className="filtered-results">
+              <h4>Filtered Calculated Average for Selected Buckets</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Segment</th>
+                    {bucketOptions.map((bucket, index) => (
+                      <th key={index}>{bucket}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.map((row, index) => (
+                    <tr key={index}>
+                      <td>{row[0]}</td>
+                      {bucketOptions.map((_, i) => (
+                        <td key={i}>
+                          {/* Display Segment 1 and Segment 2 values together, separated by a slash */}
+                          {row[1][i] !== undefined ? row[1][i] : ""}
+                          {row[2][i] !== undefined ? `${row[2][i]}%` : ""}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+
+              </table>
+              <div className="loss-rate-inputs">
+                <div className="input-wrapper">
+                  <label>Loss Rate of Segment 1 %:</label>
+                  <input value={lossRateSegment1} onChange={(e) => setLossRateSegment1(e.target.value)} />
+                </div>
+                <div className="input-wrapper">
+                  <label>Loss Rate of Segment 2 %:</label>
+                  <input value={lossRateSegment2} onChange={(e) => setLossRateSegment2(e.target.value)} />
+                </div>
+                <button onClick={handleCalculateLossRate}>Calculate Loss Rates</button>
+              </div>
+              
+              {calculatedLossRates && (
+                <div className="loss-rates">
+                  <h4>Calculated Loss Rates</h4>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Segment</th>
+                        {bucketOptions.map((bucket, index) => (
+                          <th key={index}>{bucket}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Segment 1</td>
+                        {calculatedLossRates[0].map((rate, index) => (
+                          <td key={index}>{rate}%</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td>Segment 2</td>
+                        {calculatedLossRates[1].map((rate, index) => (
+                          <td key={index}>{rate}%</td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+           
+            </div>
+          )}
+          
           <button onClick={downloadExcel}>Download Excel</button>
-        </div>
+        </>
       )}
     </div>
   );
