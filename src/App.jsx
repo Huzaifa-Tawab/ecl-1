@@ -160,19 +160,59 @@ function App() {
   };
   const handleCalculateLossRate = () => {
     if (lossRateSegment1 && lossRateSegment2 && filteredData) {
-      const calculateRate = (values, percentage) => {
-        return values.map(value => {
-          const val = parseFloat(value) || 0;
-          return (val * (percentage / 100)).toFixed(2);
-        });
-      };
+        // Convert loss rate percentages to decimal values
+        const segment1LossRate = parseFloat(lossRateSegment1) / 100 || 0;
+        const segment2LossRate = parseFloat(lossRateSegment2) / 100 || 0;
 
-      const segment1LossRates = calculateRate(filteredData[0][1], lossRateSegment1);
-      const segment2LossRates = calculateRate(filteredData[0][2], lossRateSegment2);
+        // Function to calculate the multiplied result for a segment
+        const calculateRate = (segmentValues, percentage) => {
+            // Initialize the result array
+            let results = [];
 
-      setCalculatedLossRates([segment1LossRates, segment2LossRates]);
+            // Iterate through each bucket to calculate the results
+            for (let i = 0; i < segmentValues.length; i++) {
+                // Calculate the product of all buckets starting from index i
+                let product = 1;
+                for (let j = i; j < segmentValues.length; j++) {
+                    const val = parseFloat(segmentValues[j]) / 100 || 0; // Convert to decimal
+                    product *= val; // Multiply all bucket values together starting from index i
+                }
+
+                // Multiply the product by the percentage and convert to a percentage format
+                const calculatedValue = (product * percentage * 100).toFixed(2);
+                results.push(`${calculatedValue}`); // Format the value as a percentage
+            }
+
+            return results;
+        };
+
+        // Calculate the multiplied values for segment 1 and segment 2
+        const segment1Values = filteredData[0][1] || []; // Assuming index 0 contains segment 1 data
+        const segment2Values = filteredData[1][2] || []; // Assuming index 1 contains segment 2 data
+
+        // Calculate loss rates for segment 1 and segment 2
+        const segment1Results = calculateRate(segment1Values, segment1LossRate); // Calculate for segment 1
+        const segment2Results = calculateRate(segment2Values, segment2LossRate); // Calculate for segment 2
+
+        // Store the results as arrays for display
+        setCalculatedLossRates([segment1Results, segment2Results]);
+
+        // Optional: Log results to console for verification
+        console.log("Segment 1 Results:", segment1Results);
+        console.log("Segment 2 Results:", segment2Results);
+    } else {
+        console.error("Loss rates or filtered data not defined.");
     }
-  };
+};
+
+
+
+  
+  
+
+  
+
+  
 
 
   const downloadExcel = () => {
@@ -325,15 +365,15 @@ function App() {
                     <tbody>
                       <tr>
                         <td>Segment 1</td>
-                        {calculatedLossRates[0].map((rate, index) => (
-                          <td key={index}>{rate}%</td>
-                        ))}
+                        {calculatedLossRates[0] && calculatedLossRates[0].map((rate, index) => (
+          <td key={index}>{rate}%</td>
+        ))}
                       </tr>
                       <tr>
                         <td>Segment 2</td>
-                        {calculatedLossRates[1].map((rate, index) => (
-                          <td key={index}>{rate}%</td>
-                        ))}
+                        {calculatedLossRates[1] && calculatedLossRates[1].map((rate, index) => (
+          <td key={index}>{rate}%</td>
+        ))}
                       </tr>
                     </tbody>
                   </table>
