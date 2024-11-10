@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+.sidebar {
+    background: #08934C;
+    color: white;
+    height: 100vh;
+    /* overflow: scroll; */
+    width: 310px;
+  }
+  .main-container{
+    display: flex;
+  }
+
+  .sidebar *{
+    font-family: "Nunito", sans-serif;
+    text-decoration: none;
+    font-weight: 600;
+
+  }
+  .top_section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 10px;
+  }
+  .logo {
+    font-size: 18px;
+    line-height: 0;
+  }
+  .bars {
+    width: 30px;
+  }
+  .hide {
+    display: none;
+  }
+  
+  .search {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    height: 30px;
+    padding: 10px;
+  }
+  .search input {
+    border: none;
+    margin-left: 10px;
+    border-radius: 5px;
+    background: rgb(238, 238, 238);
+  
+    color: white;
+  }
+  
+  .routes {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .link,.menu {
+    display: flex;
+    color: white;
+    gap: 10px;
+    padding: 5px 10px;
+    border-right: 4px solid transparent;
+    transition: 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+  }
+  .link:hover,.menu:hover {
+    background: #DBFEB8;
+    transition: 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+    color: #000;
+  }
+  .active {
+     border-right: 4px solid #BA2D0B;
+   /* background: rgb(45, 51, 89); */
+    background: #DBFEB8;
+    color: black;
+    border-radius: 3px;
+    margin: 0px 3px;
+  
+  }
+  .link_text {
+    white-space: nowrap;
+    font-size: 16px;
+
+  }
+  
+  .menu {
+    display: flex;
+    color: white;
+    padding: 5px 10px;
+    border-right: 4px solid transparent;
+    transition: 0.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+    justify-content: space-between;
+  }
+  .menu_item {
+    display: flex;
+    gap: 10px;
+  }
+  .menu_container {
+    display: flex;
+    flex-direction: column;
+  }
+  .menu_container .link {
+    
+    padding-left: 20px;
+    border-bottom: #fff 0.5px solid;
+  }
+  

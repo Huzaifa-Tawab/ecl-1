@@ -40,17 +40,7 @@
 .read-the-docs {
   color: #888;
 }
-/* Container styling */
-.container {
-  max-width: 100%;
-  margin: 40px auto;
-  padding: 20px;
-  text-align: center;
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  overflow-x: auto; /* Enable horizontal scrolling */
-}
+
 
 /* Heading styling */
 h1 {
