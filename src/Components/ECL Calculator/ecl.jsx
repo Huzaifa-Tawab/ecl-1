@@ -221,8 +221,10 @@ function EclCalculator() {
   return (
     <div className="container">
       <h1>Excel Migration Calculator</h1>
-      <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
-
+      <label htmlFor="aging">Aging Data File </label>
+      <input type="file" accept=".xlsx, .xls" name="aging" onChange={handleFileUpload} />
+      <label htmlFor="macro">Macro Economics File </label>
+      <input type="file" accept=".xlsx, .xls" name="macro" onChange={handleFileUpload} />
       {calculatedMigrationData && (
         <>
           <div className="migration-data">
