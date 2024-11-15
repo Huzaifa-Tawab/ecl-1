@@ -15,7 +15,7 @@ function EclCalculator() {
   const bucketOptions = [
     "Not Due", "1-29", "30-59", "60-89", "90-119", "120-149", "150-179", "180-209", "210-239", "240-269",
     "270-299", "300-329", "330-359", "360-389", "390-419", "420-449", "450-479", "480-509", "510-539",
-    "540-569", "570-599", "600-629", "630-659", "660-689", "690-719", "720-749", "750-779", "Total"
+    "540-569", "570-599", "600-629", "630-659", "660-689", "690-719", "720-749", "750-779"
   ];
 
   // Function to handle file upload
@@ -110,8 +110,10 @@ function EclCalculator() {
     const segmentGroups = {};
 
     data.forEach(row => {
-      const segmentName = row[0];
+      const segmentName = row[0]?.trim();
       const values = row.slice(1);
+
+      if (!segmentName) return;
 
       if (!segmentGroups[segmentName]) {
         segmentGroups[segmentName] = [];
@@ -314,19 +316,20 @@ function EclCalculator() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredData.map((row, index) => (
-                    <tr key={index}>
-                      <td>{row[0]}</td>
-                      {bucketOptions.map((_, i) => (
-                        <td key={i}>
-                          {/* Display Segment 1 and Segment 2 values together, separated by a slash */}
-                          {row[1][i] !== undefined ? row[1][i] : ""}
-                          {row[2][i] !== undefined ? `${row[2][i]}%` : ""}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
+  {filteredData
+    .filter(row => row[0]) // Only include rows with non-empty segment names
+    .map((row, index) => (
+      <tr key={index}>
+        <td>{row[0]}</td>
+        {bucketOptions.map((_, i) => (
+          <td key={i}>
+            {row[1][i] !== undefined ? row[1][i] : ""}
+            {row[2][i] !== undefined ? `${row[2][i]}%` : ""}
+          </td>
+        ))}
+      </tr>
+    ))}
+</tbody>
 
               </table>
               <div className="loss-rate-inputs">
