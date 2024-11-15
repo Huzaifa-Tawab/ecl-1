@@ -20,7 +20,7 @@ function App() {
         <Routes>
           <Route path='/' element={<Login/>} />
           {/* Use withSidebar as a wrapper for EclCalculator */}
-          <Route path="/eclcalculator" element={withSidebar(EclCalculator)()} />
+          <Route path="/ecl/calculator" element={withSidebar(EclCalculator)()} />
         </Routes>
       </BrowserRouter>
     </>

@@ -40,7 +40,7 @@ const Login = () => {
     try {
       // Sign in using Firebase Authentication
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/eclcalculator');
+      navigate('/ecl/calculator');
       
     } catch (error) {
       setLoginError('Invalid email or password. Please try again.');

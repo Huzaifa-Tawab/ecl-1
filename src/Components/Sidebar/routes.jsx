@@ -3,8 +3,8 @@ import { CiCalculator1 } from "react-icons/ci";
 
 export const routes = [
    {
-    path: "/eclcalculator",
-    name: "Agging Data",
+    path: "/ecl/calculator",
+    name: "Ecl Calculator",
     icon: <BiCalculator />,
   },
   {
