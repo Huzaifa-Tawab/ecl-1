@@ -673,6 +673,13 @@ function EclCalculator() {
   const [isAggingFileUploaded, setIsAggingFileUploaded] = useState(false);
   const [isMacroFileUploaded, setIsMacroFileUploaded] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [inputWeightages, setInputWeightages] = useState({});
+  const [inputFactors, setInputFactors] = useState({});
+  const [segmentStorage, setSegmentStorage] = useState({
+    segment1: {},  // For Weightage Results
+    segment2: {}   // For Factor Results
+  });
+
   
 
   // Function to handle file upload
@@ -830,30 +837,92 @@ function EclCalculator() {
     }));
   };
 
+ // Update input change handler
+const handleInputWeightageChange = (header, segment, value) => {
+  setInputWeightages((prev) => ({
+    ...prev,
+    [`${header}_${segment}`]: value || 0, // Default to 100 if empty
+  }));
+};
+
   const handleStepOneSubmit = () => {
     setStep(2);
   };
 
   const handleFinalSubmit = () => {
-    // Calculate final normalized values with applied directions
-    const finalValues = Object.entries(adjustedMetrics).reduce((acc, [header, metric]) => {
-      acc[header] = {
-        normalizedAverageBase: normalizedDirections[header] === 'Positive' ? 
-          metric.normalizedAverageBase : abs(-metric.normalizedAverageBase),
-        normalizedAverageBest: normalizedDirections[header] === 'Positive' ? 
-          metric.normalizedAverageBest : abs(-metric.normalizedAverageBest),
-        normalizedAverageWorst: normalizedDirections[header] === 'Positive' ? 
-          metric.normalizedAverageWorst : abs(-metric.normalizedAverageWorst),
-        appliedDirection: normalizedDirections[header]
-      };
-      return acc;
-    }, {});
+    // setErrors(prev => ({ ...prev, calculation: "" }));
 
-    setFinalNormalizedValues(finalValues);
-    setSubmitted(true);
-    console.log('Final Normalized Values:', finalValues);
-    alert('Normalized values stored successfully!');
+    if (!adjustedMetrics || !segments || segments.length === 0) {
+      alert('Please ensure all data is loaded correctly');
+      return;
+    }
+
+    try {
+      // Calculate final normalized values with applied directions
+      const finalValues = Object.entries(adjustedMetrics).reduce((acc, [header, metric]) => {
+        const direction = normalizedDirections[header] === 'Positive' ? 1 : -1;
+
+        const segmentResults = segments.map(segment => {
+          const weightage = (inputWeightages[`${header}_${segment}`] || 0) / 100;
+
+          return {
+            segment,
+            normalizedAverageBase: metric.normalizedAverageBase * direction * weightage,
+            normalizedAverageBest: metric.normalizedAverageBest * direction * weightage,
+            normalizedAverageWorst: metric.normalizedAverageWorst * direction * weightage,
+          };
+        });
+
+        acc[header] = segmentResults;
+        return acc;
+      }, {});
+
+      // Create dynamic segment storage based on actual segments
+      const newSegmentStorage = segments.reduce((acc, segment) => {
+        acc[segment] = {
+          base: 0,
+          best: 0,
+          worst: 0
+        };
+        return acc;
+      }, {});
+
+      // Accumulate values for each segment
+      Object.entries(finalValues).forEach(([header, segmentResults]) => {
+        segmentResults.forEach(result => {
+          newSegmentStorage[result.segment].base += result.normalizedAverageBase;
+          newSegmentStorage[result.segment].best += result.normalizedAverageBest;
+          newSegmentStorage[result.segment].worst += result.normalizedAverageWorst;
+        });
+      });
+
+      // Round accumulated values
+      Object.keys(newSegmentStorage).forEach(segment => {
+        Object.keys(newSegmentStorage[segment]).forEach(key => {
+          newSegmentStorage[segment][key] = Number(newSegmentStorage[segment][key].toFixed(2));
+        });
+      });
+
+      setSegmentStorage(newSegmentStorage);
+      setFinalNormalizedValues(finalValues);
+      setSubmitted(true);
+      // setShowResults(false);
+
+      setTimeout(() => {
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
+    } catch (error) {
+      setErrors(prev => ({ ...prev, calculation: "Error calculating final results" }));
+      setSubmitted(false);
+      console.error('Error in final submit:', error);
+      alert('An error occurred during calculation. Please check your inputs.');
+    }
   };
+
+
 
   const { metrics } = useMemo(() => excelData, [excelData]);
 
@@ -1076,7 +1145,7 @@ function EclCalculator() {
               <div className="loss-rate-inputs">
               {segments.map((segment) => (
   <div key={segment} className="segment-input">
-    <label htmlFor={`lossRate-${segment}`} className="block">{segment} Loss Rate (%)</label>
+    <label htmlFor={`lossRate-${segment}`} className="block">{segment} Loss Rate</label>
     <input
       type="number"
       id={`lossRate-${segment}`}
@@ -1165,18 +1234,20 @@ function EclCalculator() {
             </>
           )}
 
-          {step === 2 && !submitted && (
+{step === 2 && !submitted && (
             <>
-              <h2 className="text-xl font-bold mb-4">Set Normalized Average Directions</h2>
+              <h2 className="text-xl font-bold mb-4">Step 2: Set Normalized Average Directions</h2>
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse border">
                   <thead>
                     <tr className="bg-gray-100">
                       <th className="border p-2">Header</th>
-                      <th className="border p-2">Base</th>
-                      <th className="border p-2">Best</th>
-                      <th className="border p-2">Worst</th>
+                      <th className="border p-2">Normalized Average (Base)</th>
+                      <th className="border p-2">Normalized Average (Best)</th>
+                      <th className="border p-2">Normalized Average (Worst)</th>
                       <th className="border p-2">Direction</th>
+                      <th className="border p-2">Input Weightage</th>
+                     
                     </tr>
                   </thead>
                   <tbody>
@@ -1196,57 +1267,97 @@ function EclCalculator() {
                             <option value="Negative">Negative</option>
                           </select>
                         </td>
+                        {segments.map((segment) => (
+      <td key={segment} className="border p-2">
+        <input
+          type="number"
+          value={inputWeightages[`${header}_${segment}`] || 0}
+          onChange={(e) => handleInputWeightageChange(header, segment, e.target.value)}
+          className="w-full p-1 border rounded"
+          placeholder="Weightage 0-100"
+          min="0"
+          max="100"
+        />
+      </td>
+    ))}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <div className="mt-4 space-x-4">
-                <button 
-                  onClick={() => setStep(1)} 
-                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                >
-                  Back
-                </button>
-                <button 
-                  onClick={handleFinalSubmit} 
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Submit
-                </button>
-              </div>
+              <button 
+                onClick={handleFinalSubmit}
+                className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                Submit
+              </button>
             </>
           )}
 
-          {submitted && (
-            <>
-              <h2 className="text-xl font-bold mb-4">Final Normalized Values</h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full border-collapse border">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border p-2">Header</th>
-                      <th className="border p-2">Base</th>
-                      <th className="border p-2">Best</th>
-                      <th className="border p-2">Worst</th>
-                      {/* <th className="border p-2">Applied Direction</th> */}
+{/* Replace the erroring table with this corrected version */}
+{submitted && (
+  <div className="mt-4">
+    <h3 className="text-lg font-bold">Final Normalized Values</h3>
+    <div className="overflow-x-auto">
+      <table className="min-w-full border-collapse border">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border p-2">Header</th>
+            {segments.map((segment) => (
+              <React.Fragment key={segment}>
+                <th className="border p-2">{segment} Base</th>
+                <th className="border p-2">{segment} Best</th>
+                <th className="border p-2">{segment} Worst</th>
+              </React.Fragment>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(finalNormalizedValues).map(([header, segmentResults]) => (
+            <tr key={header} className="hover:bg-gray-50">
+              <td className="border p-2">{header}</td>
+              {segmentResults.map((result, index) => (
+                <React.Fragment key={index}>
+                  <td className="border p-2">{result.normalizedAverageBase.toFixed(2)}</td>
+                  <td className="border p-2">{result.normalizedAverageBest.toFixed(2)}</td>
+                  <td className="border p-2">{result.normalizedAverageWorst.toFixed(2)}</td>
+                </React.Fragment>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+
+{submitted && (
+        <div className="mt-4">
+          <h3 className="text-lg font-bold">Segment Storage</h3>
+          <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Segment</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Base</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Best</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Worst</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {Object.entries(segmentStorage).map(([segment, values]) => (
+                    <tr key={segment} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{segment}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{values.base}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{values.best}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{values.worst}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(finalNormalizedValues).map(([header, metric]) => (
-                      <tr key={header} className="hover:bg-gray-50">
-                        <td className="border p-2">{header}</td>
-                        <td className="border p-2">{metric.normalizedAverageBase.toFixed(2)}</td>
-                        <td className="border p-2">{metric.normalizedAverageBest.toFixed(2)}</td>
-                        <td className="border p-2">{metric.normalizedAverageWorst.toFixed(2)}</td>
-                        {/* <td className="border p-2">{metric.appliedDirection}</td> */}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
+                  ))}
+                </tbody>
+              </table>
+          </div>
+        </div>
+      )}
         </div>
       )}
     </div>

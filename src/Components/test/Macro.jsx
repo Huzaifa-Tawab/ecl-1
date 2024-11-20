@@ -954,7 +954,7 @@ const ExcelDataParser = () => {
                       <th className="border p-2">Normalized Average (Worst)</th>
                       <th className="border p-2">Direction</th>
                       <th className="border p-2">Input Weightage</th>
-                      <th className="border p-2">Weightage</th>
+                     
                     </tr>
                   </thead>
                   <tbody>
@@ -1055,13 +1055,13 @@ const ExcelDataParser = () => {
               </thead>
               <tbody>
                 <tr className="hover:bg-gray-50">
-                  <td className="border p-2">Segment 1 (Weightage)</td>
+                  <td className="border p-2">Segment 1</td>
                   <td className="border p-2">{segmentStorage.segment1.base}</td>
                   <td className="border p-2">{segmentStorage.segment1.best}</td>
                   <td className="border p-2">{segmentStorage.segment1.worst}</td>
                 </tr>
                 <tr className="hover:bg-gray-50">
-                  <td className="border p-2">Segment 2 (Factor)</td>
+                  <td className="border p-2">Segment 2</td>
                   <td className="border p-2">{segmentStorage.segment2.base}</td>
                   <td className="border p-2">{segmentStorage.segment2.best}</td>
                   <td className="border p-2">{segmentStorage.segment2.worst}</td>
