@@ -672,6 +672,8 @@ const ExcelDataParser = () => {
     segment1: {},  // For Weightage Results
     segment2: {}   // For Factor Results
   });
+  const [individualDirections, setIndividualDirections] = useState({});
+
 
   const handleMacroUpload = (e) => {
     const file = e.target.files[0];
@@ -808,7 +810,12 @@ const ExcelDataParser = () => {
   const handleStepOneSubmit = () => {
     setStep(2);
   };
-
+  const handleIndividualDirectionChange = (header, type, value) => {
+    setIndividualDirections(prev => ({
+      ...prev,
+      [`${header}_${type}`]: value
+    }));
+  };
   const handleFinalSubmit = () => {
     // Calculate final normalized values with applied directions
     const finalValues = Object.entries(adjustedMetrics).reduce((acc, [header, metric]) => {
