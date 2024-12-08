@@ -830,12 +830,6 @@ function EclCalculator() {
     });
   };
 
-  const handleNormalizedDirectionChange = (header, value) => {
-    setNormalizedDirections(prev => ({
-      ...prev,
-      [header]: value
-    }));
-  };
 
  // Update input change handler
 const handleInputWeightageChange = (header, segment, value) => {
@@ -849,7 +843,7 @@ const handleInputWeightageChange = (header, segment, value) => {
     setStep(2);
   };
 
-  const handleFinalSubmit = () => {
+   const handleFinalSubmit = () => {
     // setErrors(prev => ({ ...prev, calculation: "" }));
 
     if (!adjustedMetrics || !segments || segments.length === 0) {
@@ -860,23 +854,23 @@ const handleInputWeightageChange = (header, segment, value) => {
     try {
       // Calculate final normalized values with applied directions
       const finalValues = Object.entries(adjustedMetrics).reduce((acc, [header, metric]) => {
-        const direction = normalizedDirections[header] === 'Positive' ? 1 : -1;
-
+    
         const segmentResults = segments.map(segment => {
           const weightage = (inputWeightages[`${header}_${segment}`] || 0) / 100;
 
           return {
             segment,
-            normalizedAverageBase: metric.normalizedAverageBase * direction * weightage,
-            normalizedAverageBest: metric.normalizedAverageBest * direction * weightage,
-            normalizedAverageWorst: metric.normalizedAverageWorst * direction * weightage,
+            normalizedAverageBase: metric.normalizedAverageBase *  weightage,
+            normalizedAverageBest: metric.normalizedAverageBest * weightage,
+            normalizedAverageWorst: metric.normalizedAverageWorst * weightage,
           };
         });
 
         acc[header] = segmentResults;
         return acc;
       }, {});
-
+   
+      
       // Create dynamic segment storage based on actual segments
       const newSegmentStorage = segments.reduce((acc, segment) => {
         acc[segment] = {
@@ -1259,8 +1253,22 @@ const handleInputWeightageChange = (header, segment, value) => {
                         <td className="border p-2">{metric.normalizedAverageWorst.toFixed(2)}</td>
                         <td className="border p-2">
                           <select
-                            value={normalizedDirections[header]}
-                            onChange={(e) => handleNormalizedDirectionChange(header, e.target.value)}
+                            // value={normalizedDirections[header]}
+                            onChange={(e) => {
+                              const direction = e.target.value;
+                              let sign = direction === 'Negative' ? -1 : 1;
+                              console.log(adjustedMetrics);
+                              
+                              setAdjustedMetrics(prevMetrics => {
+                                const updatedMetrics = {...prevMetrics};
+                                updatedMetrics[header] = {
+                                  normalizedAverageBase: Math.abs(metric.normalizedAverageBase) * sign,
+                                  normalizedAverageBest: Math.abs(metric.normalizedAverageBest) * sign,
+                                  normalizedAverageWorst: Math.abs(metric.normalizedAverageWorst) * sign,
+                                };
+                                return updatedMetrics;
+                              });
+                            }}
                             className="w-full p-1 border rounded"
                           >
                             <option value="Positive">Positive</option>
