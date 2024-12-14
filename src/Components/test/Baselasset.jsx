@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
-import { abs, mean, std } from 'mathjs';
+import { abs, log, mean, std } from 'mathjs';
 import { norminv, normdist } from 'jstat';
 import { jStat } from 'jstat'
+import './bassel.css'
 
 function EclCalculator() {
   const [aggingexcelData, setAggingExcelData] = useState(null);
@@ -51,7 +52,7 @@ function EclCalculator() {
       const bucket = row['buckets'] || row['Bucket'] || row['bucket'];
       const balance = row['Outstanding balance at reporting date'] || row['Outstanding Balance'] || row['balance'];
   
-      console.log(`Processing Segment: ${segment}, Bucket: "${bucket}"`);
+      // console.log(`Processing Segment: ${segment}, Bucket: "${bucket}"`);
   
       // Check if the Bucket value is valid
       if (!bucket || bucket === 'undefined') {
@@ -85,28 +86,34 @@ function EclCalculator() {
       }
   
       // Retrieve values from baseCase, bestCase, and worseCase arrays for the specific bucket
-      const baseCase = baselSegment.baseCase[bucketIndex] / 100 || 0;
-      const bestCase = baselSegment.bestCase[bucketIndex] / 100 || 0;
-      const worseCase = baselSegment.worseCase[bucketIndex] / 100 || 0;
+      const baseCase = baselSegment.baseCase[bucketIndex] /10 || 0;
+      const bestCase = baselSegment.bestCase[bucketIndex] /10 || 0;
+      const worseCase = baselSegment.worseCase[bucketIndex] /10 || 0;
   
       console.log("Base Case:", baseCase);
       console.log("Best Case:", bestCase);
       console.log("Worse Case:", worseCase);
+      console.log("balane:",  balance);
   
       // Calculate ECL values
-      const eclBase = balance * baseCase;
-      const eclBest = balance * bestCase;
-      const eclWorse = balance * worseCase;
+      const eclBase =  baseCase * balance; // This will be multiplied with same entries of balance and show out put
+      const eclBest =  bestCase * balance;
+      const eclWorse =  worseCase * balance;
+      
   
       // Store results
       eclResults.push({
         Segment: segment,
         Bucket: bucket,
-        "Outstanding Balance": balance,
-        "ECL Base": eclBase.toFixed(2),
-        "ECL Best": eclBest.toFixed(2),
-        "ECL Worse": eclWorse.toFixed(2),
-      });
+        Outstanding : balance,
+        ECLBase: eclBase,
+        ECLBest: eclBest,
+        ECLWorse: eclWorse,
+        
+      },
+    
+    );
+      
     });
   
     setEclOutput(eclResults);
@@ -168,11 +175,11 @@ function EclCalculator() {
   };
 
   const handleWeightageSubmit = () => {
-    if (weightages.base && weightages.best && weightages.worse) {
-      setCalculatedValues(weightages);
-    } else {
+    if (!weightages.base || !weightages.best || !weightages.worse) {
       alert("Please fill in all weightage fields!");
+      return;
     }
+    setCalculatedValues(weightages);
   };
 
 
@@ -378,7 +385,9 @@ console.log(uniqueSegments);
             const base = value;
             const bestCase = base + std(last5Years);
             const worstCase = base - std(last5Years);
-
+            console.log(actualValues);
+            console.log(base);
+            
             return {
               base,
               bestCase,
@@ -887,6 +896,8 @@ console.log(filtered);
                   </thead>
                   <tbody>
                     {Object.entries(adjustedMetrics).map(([header, metric]) => (
+                      console.log(adjustedMetrics),
+                      
                       <>
                         {/* Base Case Row */}
                         <tr key={`${header}_base`} className="hover:bg-gray-50">
@@ -1332,6 +1343,7 @@ console.log(filtered);
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               ECL Worse
             </th>
+            
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -1344,16 +1356,16 @@ console.log(filtered);
                 {row.Bucket}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {row["Outstanding Balance"]}
+                {row.Outstanding}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {row["ECL Base"]}
+                {row.ECLBase}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {row["ECL Best"]}
+                {row.ECLBest}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {row["ECL Worse"]}
+                {row.ECLWorse}
               </td>
             </tr>
           ))}
@@ -1363,50 +1375,114 @@ console.log(filtered);
   </div>
 )}
 
-          <h3>Provide Weightages:</h3>
-          <div>
-            <label>
-              Base:{" "}
-              <input
-                type="number"
-                name="base"
-                value={weightages.base}
-                onChange={handleWeightageChange}
-              />
-            </label>
-            <label>
-              Best:{" "}
-              <input
-                type="number"
-                name="best"
-                value={weightages.best}
-                onChange={handleWeightageChange}
-              />
-            </label>
-            <label>
-              Worse :{" "}
-              <input
-                type="number"
-                name="worse"
-                value={weightages.worse}
-                onChange={handleWeightageChange}
-              />
-            </label>
-            <button onClick={handleWeightageSubmit}>Submit Weightages</button>
-          </div>
+<h3 className="text-lg font-bold mt-6">Provide Weightages:</h3>
+<div className="space-x-4 mb-6">
+  <label className="inline-block">
+    Base:{" "}
+    <input
+      type="number"
+      name="base"
+      value={weightages.base}
+      onChange={handleWeightageChange}
+      className="border rounded px-2 py-1"
+    />
+  </label>
+  <label className="inline-block">
+    Best:{" "}
+    <input
+      type="number"
+      name="best"
+      value={weightages.best}
+      onChange={handleWeightageChange}
+      className="border rounded px-2 py-1"
+    />
+  </label>
+  <label className="inline-block">
+    Worse:{" "}
+    <input
+      type="number"
+      name="worse"
+      value={weightages.worse}
+      onChange={handleWeightageChange}
+      className="border rounded px-2 py-1"
+    />
+  </label>
+  <button 
+    onClick={handleWeightageSubmit}
+    className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
+  >
+    Submit Weightages
+  </button>
+</div>
 
-          {calculatedValues && (
-            <div>
-              <table>
-                <thead >Input Weightages</thead>
-                <tbody>
-                  <td>{calculatedValues.base}%</td>
-                  <td>{calculatedValues.best}%</td>
-                  <td>{calculatedValues.worse}%</td>
-                </tbody>
-              </table>
-            </div>
-          )}
+{calculatedValues && (
+  <div>
+    <h3 className="text-lg font-bold">Weighted ECL Output</h3>
+    <div className="overflow-x-auto mt-4">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Segment
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Bucket
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Outstanding Balance
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Weighted ECL Base (×{calculatedValues.base})
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Weighted ECL Best (×{calculatedValues.best})
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Weighted ECL Worse (×{calculatedValues.worse})
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Average Weighted ECL
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {eclOutput.map((row, index) => {
+            const weightedBase = row.ECLBase * calculatedValues.base;
+            const weightedBest = row.ECLBest * calculatedValues.best;
+            const weightedWorse = row.ECLWorse * calculatedValues.worse;
+            const weightedAverage = weightedBase + weightedBest + weightedWorse;
+
+            return (
+              <tr key={index} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {row.Segment}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {row.Bucket}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {row.Outstanding}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {weightedBase.toFixed(2)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {weightedBest.toFixed(2)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {weightedWorse.toFixed(2)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                  {weightedAverage.toFixed(2)}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
         </div>
       )}
     </div>
