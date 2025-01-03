@@ -26,6 +26,7 @@ function App() {
           {/* Use withSidebar as a wrapper for EclCalculator */}
           <Route path="/ecl/calculator" element={withSidebar(EclCalculator)()} />
           <Route path="/test" element={withSidebar(ExcelDataParser)()} />
+          {/* <Route path="/output" element={withSidebar(Output)()} /> */}
           <Route path="/basel" element={withSidebar(BaselCalculator
 
           )()} />

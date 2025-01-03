@@ -158,13 +158,6 @@ function EclCalculator() {
     }
   };
   
-  // Modify the handleOutstandingUpload function to log the data structur
-  
-  
-  
-  
-  
-  
 
   const handleWeightageChange = (e) => {
     const { name, value } = e.target;
@@ -180,46 +173,6 @@ function EclCalculator() {
       return;
     }
     setCalculatedValues(weightages);
-  };
-
-
-  const handleIndividualDirectionChange = (header, valueType, value) => {
-    const currentMetric = adjustedMetrics[header];
-    const multiplier = value === 'Negative' ? -1 : 1;
-
-    let impact = {};
-
-    // Only update the specific value type (base, best, or worst)
-    if (valueType === 'base') {
-      impact = {
-        base: (currentMetric.normalizedAverageBase * multiplier).toFixed(2),
-        best: directionImpact[header]?.best || currentMetric.normalizedAverageBest.toFixed(2),
-        worst: directionImpact[header]?.worst || currentMetric.normalizedAverageWorst.toFixed(2)
-      };
-    } else if (valueType === 'best') {
-      impact = {
-        base: directionImpact[header]?.base || currentMetric.normalizedAverageBase.toFixed(2),
-        best: (currentMetric.normalizedAverageBest * multiplier).toFixed(2),
-        worst: directionImpact[header]?.worst || currentMetric.normalizedAverageWorst.toFixed(2)
-      };
-    } else if (valueType === 'worst') {
-      impact = {
-        base: directionImpact[header]?.base || currentMetric.normalizedAverageBase.toFixed(2),
-        best: directionImpact[header]?.best || currentMetric.normalizedAverageBest.toFixed(2),
-        worst: (currentMetric.normalizedAverageWorst * multiplier).toFixed(2)
-      };
-    }
-
-    setDirectionImpact(prev => ({
-      ...prev,
-      [header]: impact
-    }));
-
-    // Store individual direction settings
-    setIndividualDirections(prev => ({
-      ...prev,
-      [`${header}_${valueType}`]: value
-    }));
   };
 
   // Add the calculation method to the component
@@ -331,7 +284,6 @@ function EclCalculator() {
 
         const uniqueSegments = [...new Set(rawData.slice(1).map(row => row[1]).filter(Boolean))];
         setSegments(uniqueSegments);
-console.log(uniqueSegments);
 
         const data = rawData.slice(1).filter(row => row.length > 0);
         setAggingExcelData({ headers, data });
@@ -454,27 +406,6 @@ console.log(uniqueSegments);
     });
   };
 
-  const handleNormalizedDirectionChange = (header, value) => {
-    const currentMetric = adjustedMetrics[header];
-    const multiplier = value === 'Negative' ? -1 : 1;
-
-    const impact = {
-      base: (currentMetric.normalizedAverageBase * multiplier).toFixed(2),
-      best: (currentMetric.normalizedAverageBest * multiplier).toFixed(2),
-      worst: (currentMetric.normalizedAverageWorst * multiplier).toFixed(2)
-    };
-
-    setDirectionImpact(prev => ({
-      ...prev,
-      [header]: impact
-    }));
-
-    setNormalizedDirections(prev => ({
-      ...prev,
-      [header]: value
-    }));
-  };
-
 
   // Update input change handler
   const handleInputWeightageChange = (header, segment, value) => {
@@ -549,7 +480,7 @@ console.log(uniqueSegments);
         });
       }, 100);
     } catch (error) {
-      setErrors(prev => ({ ...prev, calculation: "Error calculating final results" }));
+      setError(prev => ({ ...prev, calculation: "Error calculating final results" }));
       setSubmitted(false);
       console.error('Error in final submit:', error);
       alert('An error occurred during calculation. Please check your inputs.');
@@ -631,8 +562,6 @@ console.log(uniqueSegments);
       ...prev,
       [segmentId]: value
     }));
-    console.log(selectedSegments);
-    
   };
 
   const handleLossRateChange = (segmentId, value) => {
@@ -882,22 +811,19 @@ console.log(filtered);
               <h2 className="text-xl font-bold mb-4">Step 2: Set Individual Value Directions</h2>
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse border">
-                  <thead>
+                <thead>
                     <tr className="bg-gray-100">
                       <th className="border p-2">Header</th>
-                      <th className="border p-2">Value Type</th>
-                      <th className="border p-2">Original Value</th>
+                      <th className="border p-2">Normalized Average (Base)</th>
+                      <th className="border p-2">Normalized Average (Best)</th>
+                      <th className="border p-2">Normalized Average (Worst)</th>
                       <th className="border p-2">Direction</th>
-                      <th className="border p-2">Adjusted Value</th>
-                      {segments.map(segment => (
-                        <th key={segment} className="border p-2">Weightage ({segment})</th>
-                      ))}
+                      <th className="border p-2">Input Weightage</th>
+                     
                     </tr>
                   </thead>
                   <tbody>
                     {Object.entries(adjustedMetrics).map(([header, metric]) => (
-                      console.log(adjustedMetrics),
-                      
                       <>
                         {/* Base Case Row */}
                         <tr key={`${header}_base`} className="hover:bg-gray-50">
@@ -1176,55 +1102,6 @@ console.log(filtered);
 
       {baselCorrelationResults && (
         <div className="space-y-8">
-          {/* Original Basel Correlation Results Table */}
-          <div className="mt-4">
-            <h3 className="text-lg font-bold">Basel Correlation Results</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Segment</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Buckets</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loss Rate (%)</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset Correlation</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Base Case (%)</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Best Case (%)</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Worse Case (%)</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {Object.entries(baselCorrelationResults).map(([segmentName, segmentData]) => (
-                    segmentData.buckets.map((bucket, index) => (
-                      <tr key={`${segmentName}-${bucket}`} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {segmentName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {bucket}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {segmentData.lossRates[index]}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {segmentData.assetCorrelations[index]}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {segmentData.baseCase[index]}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {segmentData.bestCase[index]}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {segmentData.worseCase[index]}
-                        </td>
-                      </tr>
-                    ))
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
           {/* New Loss Rate Output Table */}
           <div className="mt-4">
             <h3 className="text-lg font-bold">Loss Rate Output</h3>
